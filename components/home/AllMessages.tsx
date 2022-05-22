@@ -3,7 +3,6 @@ import { Typography, Base } from '../../styles/index.js';
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { textAlign } from '../../styles/Base.js';
 
 export default function AllMessages(route) {
     const messages = route.route.params.messages;

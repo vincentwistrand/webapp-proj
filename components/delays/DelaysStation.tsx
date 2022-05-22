@@ -2,37 +2,50 @@ import { TouchableOpacity, Text, View, ScrollView } from 'react-native';
 import { Typography, Base } from '../../styles/index.js';
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import { textAlign } from '../../styles/Base.js';
+import Delay from '../../interface/delay';
+import Station from '../../interface/station';
 
-export default function DelaysStation(route) {
-    const stationName = route.route.params.stationName;
-    const delays = route.route.params.delayInfo;
-    const allStationNames = route.route.params.allStationNames;
-    const navigation = useNavigation();
-
-    const stationNamesNoDuplicates = [...new Map(allStationNames.map(item => [JSON.stringify(item), item])).values()];
+export default function DelaysStation({route, navigation}) {
+    //Component showing all delays from a specific station
+    const stationName = route.params.stationName;
+    const delays = route.params.delayInfo;
+    const allStationNames = route.params.allStationNames;
 
     function ackronymToName (ackronym: string) {
+        //Convert LocationSignature to station name
         let name = "";
-        stationNamesNoDuplicates.forEach(object => {
+        allStationNames.forEach(object => {
             if (object.ackronym === ackronym ) {
-                //console.log(object.name)
                 name = object.name;
             }
         });
         return name;
     }
 
-    function timeFormat (date: string) {
-        let newTime = date.substring(11, date.length -13)
-        return newTime;
-    }
+    let stationDelays: { delay: Delay; station: Station; longitude: string; latitude: string;}[] = [];
+
+    delays.forEach(delay => {
+        if (delay.station.AdvertisedLocationName === stationName) {
+            stationDelays.push(delay);
+        }
+    });
+
+    stationDelays.sort(
+        function(a, b) {
+            if (Number(a.delay.AdvertisedTrainIdent) === Number(b.delay.AdvertisedTrainIdent)) {
+                return new Date(b.delay.EstimatedTimeAtLocation).getTime() - new Date(a.delay.EstimatedTimeAtLocation).getTime();
+            }
+            return Number(a.delay.AdvertisedTrainIdent) > Number(b.delay.AdvertisedTrainIdent) ? 1 : -1;
+        }
+    )
 
     let counter = 1;
-    const listOfDelays = delays
+    let trainList: Array<String> = [];
+    const listOfDelays = stationDelays
     .map((delay, index) => {
-        if (delay.station.AdvertisedLocationName === stationName) {
+        if (!trainList.includes(delay.delay.AdvertisedTrainIdent)) {
+            trainList.push(delay.delay.AdvertisedTrainIdent);
+            
             let color = 'black';
             if (counter % 2) {
             color = '#232323';
@@ -64,7 +77,8 @@ export default function DelaysStation(route) {
                             </View>
                     </TouchableOpacity>
         }
-    });
+        }
+    );
 
     return (
         <ScrollView>

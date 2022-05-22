@@ -10,7 +10,6 @@ import Delay from '../../interface/delay.js';
 import messageModel from '../../models/messages';
 import Message from '../../interface/messages';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 
 export default function Favorites({ route, navigation }) {
     const { reload } = route.params || false;
@@ -125,8 +124,6 @@ export default function Favorites({ route, navigation }) {
                     stationNameDelays.push({station: name.stationName, stationDelays: delayList, warningMessage: stationMessage});
                 });
 
-                console.log('hihi');
-
                 function timeFormat (date: string) {
                     let newTime = date.substring(11, date.length -13)
                     return newTime;
@@ -208,7 +205,7 @@ export default function Favorites({ route, navigation }) {
 
                 {isLoggedIn ? 
                     <View>
-                        {delayList[0]}
+                        {!delayList[0] || delayList[0].length === 0 ? <Text style={[Typography.p, {textAlign: 'center', marginTop: 50}]}>Inga favoritstationer tillagda</Text>: delayList[0]}
                     </View>:
                     <>
                         <View  style={Base.mainPadding}>

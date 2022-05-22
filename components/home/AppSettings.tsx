@@ -6,11 +6,10 @@ import React, { useEffect, useState } from 'react';
 import storage from '../../models/storage';
 import { Ionicons } from '@expo/vector-icons';
 import stationsModel from '../../models/stations';
-import { NavigationContainer } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
+import { showMessage } from 'react-native-flash-message';
 
-export default function AppSettings(route) {
-    const { reload } = route.params || false;
+export default function AppSettings() {
     const [currentUser, setCurrentUser] = useState("");
     const [stationList, setStationList] = useState([]);
     const navigation = useNavigation();
@@ -43,7 +42,7 @@ export default function AppSettings(route) {
                 stationsSignatureAndName.push({stationName: station.AdvertisedLocationName, stationSignature: station.LocationSignature})
             });
     
-            async function deleteFavorite(locationSignature: string) {
+            async function deleteFavorite(locationSignature: string, stationName: string) {
                 favoriteStationsList.forEach((station: string, index: any) => {
                     if (station === locationSignature) {
                         favoriteStationsList.splice(index, 1)
@@ -62,6 +61,12 @@ export default function AppSettings(route) {
                 const newArtefact = JSON.stringify(artefactObject);
     
                 await authModel.updateUserData(newArtefact, authorizedUserId);
+                
+                showMessage({
+                    message: "Station borttagen",
+                    description: stationName + " togs bort från favoriter",
+                    type: "success"
+                });
     
                 navigation.navigate('Mina sidor', {reload: true})
             }
@@ -78,7 +83,7 @@ export default function AppSettings(route) {
                 return <View key={index} style={[Base.favoriteStationInfo, Base.settingsContainer]}>
                             <Text style={[Base.whiteText, Typography.p, Typography.settingsText, {minWidth: 200}]}>{station?.stationName}</Text>
                             <TouchableOpacity onPress={() => {
-                                deleteFavorite(locationSignature);
+                                deleteFavorite(locationSignature, station.stationName);
                             }}>
                                 <Ionicons name='ios-trash' color={'red'} size={28}/>
                             </TouchableOpacity>
@@ -87,11 +92,6 @@ export default function AppSettings(route) {
     
             setStationList([listOfFavoriteStations]);
         }
-        route.params = false;
-    }
-
-    if (reload) {
-        reloadContent();
     }
 
     useEffect(() => {

@@ -1,73 +1,61 @@
 import { TouchableOpacity, Text, View, ScrollView, SafeAreaView, SwitchComponent } from 'react-native';
 import { Typography, Base } from '../../styles/index.js';
-import authModel from "../../models/auth";
-import StationOtherAPI from '../../interface/station_other_api.js';
-import SwitchSelector from "react-native-switch-selector";
 import React, { useEffect, useState } from 'react';
 import arrivalsModel from '../../models/arrivals';
 import departuresModel from '../../models/departures';
 import Arrival from '../../interface/arrivals';
 import { DataTable } from "react-native-paper";
-import StationTransfers from '../../interface/arrivals';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 import Departure from '../../interface/departures.js';
+import { whiteText } from '../../styles/Base.js';
 
-export default function StationInfo({route}) {
-    //const { reload } = route.params.reload || false;
+export default function StationInfo({route, navigation}) {
     const { station } = route.params.station;
     const [selectedTab, setSelectedTab] = useState<String>('departures');
     const [arrivals, setArrivals] = useState<Array<Arrival>>([]);
     const [departures, setDepartures] = useState<Array<Departure>>([]);
+    const [dataExists, setDataExists] = useState <boolean> (true);
 
     async function reloadTrains() {
-        const arrivalsObject = await arrivalsModel.getArrivals(station.id);
-        const departuresObject = await departuresModel.getDepartures(station.id);
-
-        //console.log(departuresObject);
-
-        if (arrivalsObject.station != null && Object.keys(arrivalsObject.station).length === 7) {
-            setArrivals(arrivalsObject.station.transfers.transfer);
+        if (route.params.tab) {
+            setArrivals(route.params.arrivals);
+            setDepartures(route.params.departures);
+            setSelectedTab(route.params.tab);
+        } else {
+            const arrivalsObject = await arrivalsModel.getArrivals(station.id)
+            const departuresObject = await departuresModel.getDepartures(station.id);
+    
+            if (arrivalsObject.station != null && Object.keys(arrivalsObject.station).length === 7) {
+                setArrivals(arrivalsObject.station.transfers.transfer);
+            } else {
+                setDataExists(false);
+            }
+    
+            if (arrivalsObject.station != null && Object.keys(arrivalsObject.station).length === 7) {
+                setDepartures(departuresObject.station.transfers.transfer);
+            } else {
+                setDataExists(false);
+            }
         }
-
-        if (arrivalsObject.station != null && Object.keys(arrivalsObject.station).length === 7) {
-            setDepartures(departuresObject.station.transfers.transfer);
-        }
-
-        //route.params = false;
     }
 
     useEffect(() => {
         reloadTrains();
+        
     }, []);
 
     function SelectedTab() {
         switch(selectedTab) {
             case 'arrivals':
-                if (arrivals.length != 0) {
-                    return mapArrivals(arrivals);
-                } else {
-                    return noDataAvailable();
-                }
+                return mapArrivals(arrivals);
             case 'departures':
-                if (departures.length != 0) {
-                    return mapDepartures(departures);
-                } else {
-                    return noDataAvailable();
-                }
+                return mapDepartures(departures);
         }
     }
 
-
-    //console.log(arrivals[0].origin);
-
-    //console.log(arrivals);
-
-    const navigation = useNavigation();
-
     return (
         <SafeAreaView>
-            <ScrollView style={Base.stationsMain}>
+            <View style={Base.stationsMain}>
                 <View style={Base.titleSearchIcon}>
                     <Text></Text>
                     <Text style={Typography.stationTitle}>{station.name}</Text>
@@ -106,10 +94,11 @@ export default function StationInfo({route}) {
                     </TouchableOpacity>
                 
                 </View>
-                
-                {SelectedTab()}
+                <ScrollView>
+                    {!dataExists ? <Text style={[Typography.h3, {textAlign: 'center', marginTop: 50}]}>No data</Text>:SelectedTab()}
+                </ScrollView>
                
-            </ScrollView>
+            </View>
         </SafeAreaView>
     );
 };

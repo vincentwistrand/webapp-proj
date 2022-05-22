@@ -1,13 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'react-native';
-import React, { useState, useEffect, Fragment } from 'react';
+import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { DefaultTheme,NavigationContainer } from '@react-navigation/native';
+import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import FlashMessage from "react-native-flash-message"
 import { Base } from './styles';
 import Auth from './components/home/Auth';
-import authModel from './models/auth';
 import Delays from './components/delays/Delays';
 import Stations from './components/stations/Stations';
 
@@ -52,8 +51,7 @@ export default function App() {
             </Tab.Navigator>
         </NavigationContainer>
         <StatusBar barStyle = "light-content" hidden = {false} backgroundColor = "#000000" translucent = {true}/>
-        <FlashMessage position="bottom" />
+        <FlashMessage position="top" statusBarHeight={70}/>
       </SafeAreaView>
     );
-}
-
+};

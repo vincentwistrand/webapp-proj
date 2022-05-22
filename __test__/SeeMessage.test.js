@@ -10,7 +10,7 @@ const route = {
     }
 };
 
-test('should display message', async () => {
+test('should display message title and message', async () => {
     const { getByText, debug } = render(<SeeMessage
         route={route}
     />);

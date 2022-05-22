@@ -1,30 +1,37 @@
 import React, { useEffect, useState } from "react";
-import { Text, View, StyleSheet, TouchableOpacity, Button } from "react-native";
-import { Base, Typography } from "../../styles";
-
-import MapView, { Circle } from 'react-native-maps';
+import { Text, View, StyleSheet } from "react-native";
+import { Base } from "../../styles";
+import MapView from 'react-native-maps';
 import { Marker, Callout } from "react-native-maps";
-import MyCustomCalloutView from 'react-native-maps';
-import Moment from 'react-moment';
-
 import stationsModel from "../../models/stations";
 import delaysModel from "../../models/delays"
 import * as Location from 'expo-location';
 import delay from "../../interface/delay";
 import station from "../../interface/station";
-import arrivalsModel from "../../models/arrivals";
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 
 export default function DelaysMap({route, navigation}) {
+    //Component for showing all stations with delayed trains on a map
     const { reload } = route.params || false;
     const [marker, setMarker] = useState<any>(null);
     const [locationMarker, setLocationMarker] = useState<any>(null);
     const [errorMessage, setErrorMessage] = useState<any>(null);
 
+    useEffect(() => {
+        reloadContent();
+    }, []);
+
+    if (reload) {
+        reloadContent();
+        route.params = false;
+    }
+
     async function reloadContent() {
+        route.params = false;
         const stations = await stationsModel.getStations();
         const delays = await delaysModel.getDelays();
+
+        //Make custom objects to be used in DelaysStation to display all delays of a station
 
         let delayInfo: { delay: delay; station: station; longitude: string; latitude: string;}[] = [];
 
@@ -49,23 +56,22 @@ export default function DelaysMap({route, navigation}) {
             });
         });
 
+        const stationNamesNoDuplicates = [...new Map(stationNames.map(item => [JSON.stringify(item), item])).values()];
+
+        //All delay markers
+
         let counter = 1;
+        let trainList: Array<String> = [];
 
         const markers = delayInfo
         .map((delay, index) => {
-                var time = (new Date(delay.delay.EstimatedTimeAtLocation).getTime() - new Date(delay.delay.AdvertisedTimeAtLocation).getTime()) / 60000;
-
-                const walkingDistance = ((time - 1) * 100) / 2;
-
-                if (counter === 5) {
-                    counter = 0;
-                } else {
-                    counter += 1;
-                }
+            if (!trainList.includes(delay.delay.AdvertisedTrainIdent)) {
+                trainList.push(delay.delay.AdvertisedTrainIdent);
 
                 return  (<Marker
                             coordinate={{ latitude: parseFloat(delay.latitude), longitude: parseFloat(delay.longitude) }}
                             key={index}
+                            tracksViewChanges={false}
                         >
                         <Ionicons name="train" 
                                         size={25} 
@@ -75,7 +81,7 @@ export default function DelaysMap({route, navigation}) {
                         <Callout onPress={() => {navigation.navigate('Förseningar per station', {
                                         delayInfo: delayInfo,
                                         stationName: delay.station.AdvertisedLocationName,
-                                        allStationNames: stationNames
+                                        allStationNames: stationNamesNoDuplicates
                                         })}}>
                             <View style={{height: 100, width:150 }}>
                                 <Text>{delay.station.AdvertisedLocationName}</Text>
@@ -85,8 +91,10 @@ export default function DelaysMap({route, navigation}) {
                         </Callout>
 
                         </Marker>)
-        
+            }
         });
+
+        //User's position
 
         setMarker(markers);
 
@@ -109,15 +117,6 @@ export default function DelaysMap({route, navigation}) {
         />);
     }
 
-    useEffect(() => {
-        reloadContent();
-    }, []);
-
-    if (reload) {
-        reloadContent();
-        route.params = false;
-    }
-
     return (
         <View style={Base.base}>
             <View>
@@ -127,10 +126,10 @@ export default function DelaysMap({route, navigation}) {
                 <MapView
                     style={styles.map}
                     initialRegion={{
-                        latitude: 63.071343,
+                        latitude: 61.471343,
                         longitude: 15.386508,
-                        latitudeDelta: 17,
-                        longitudeDelta: 17,
+                        latitudeDelta: 22,
+                        longitudeDelta: 22,
                     }}>
                     {marker}
                     {locationMarker}

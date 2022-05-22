@@ -17,7 +17,7 @@ export default function WalkingDistance(route) {
 
     return (
         <View style={Base.base}>
-            <Text style={[Base.whiteText, {textAlign: 'center'}]}>Du hinner gå fram och tillbaka till cirkeln</Text>
+            <Text style={[Base.whiteText, {textAlign: 'center'}]}>Du hinner gå fram och tillbaka till cirkeln med 1 minuts marginal</Text>
             <View style={styles.container}>
                 <MapView
                     style={styles.map}
@@ -29,6 +29,7 @@ export default function WalkingDistance(route) {
                     }}>
                     <Marker
                             coordinate={{ latitude: parseFloat(latitude), longitude: parseFloat(longitude) }}
+                            tracksViewChanges={false}
                             >
                             <Ionicons name="train" 
                                 size={25} 

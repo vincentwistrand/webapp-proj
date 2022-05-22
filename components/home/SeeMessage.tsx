@@ -6,8 +6,6 @@ import React from 'react';
 export default function SeeMessage(route) {
     const message = route.route.params.message;
 
-    console.log(message);
-
     return (
         <ScrollView>
             <View style={[Base.mainPadding, {alignItems:'center'}]}>
